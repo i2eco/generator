@@ -1,0 +1,159 @@
+package service
+
+import(
+    "strings"
+{% for value in imports %} "{{value}}"
+{% endfor %}
+)
+
+type {{lcamelTableName}} struct {}
+
+func Init{{camelTableName}}() *{{lcamelTableName}} {
+    return &{{lcamelTableName}}{}
+}
+
+// Create 新增一条记
+func (*{{lcamelTableName}}) Create(c *gin.Context, db *gorm.DB, data *mysql.{{camelTableName}}) (err error) {
+    {% for value in columns %}{% if value.Name == "create_time" && value.GoType=="int64"%}data.CreateTime = time.Now().Unix();{% endif %}{% if value.Name == "create_time" && value.GoType=="time.Time"%}data.CreateTime = time.Now();{% endif %}{% if value.Name == "update_time" %}data.UpdateTime = time.Now().Unix(){% endif %}{% endfor %}
+    if err = db.Create(data).Error; err != nil {
+        mus.Logger.Error("create {{lcamelTableName}} create error", zap.Error(err))
+        return
+    }
+    return nil
+}
+
+{% if hasPrimaryKey == true %}
+// Update 根据主键更新一条记录
+func (*{{lcamelTableName}}) Update(c *gin.Context, db *gorm.DB, param{{camelPrimaryKey}} {{primaryKeyType}}, ups mysql.Ups) (err error) {
+     var sql = "`{{primaryKey}}`=?"
+     var binds = []interface{}{param{{camelPrimaryKey}}}
+
+     {% for value in columns %}{% if value.Name == "update_time" %}ups["update_time"] = time.Now().Unix(){% endif %}{% endfor %}
+     if err = db.Table("{{tableName}}").Where(sql, binds...).Updates(ups).Error; err != nil {
+     		mus.Logger.Error("{{tableName}} update error", zap.Error(err))
+     		return
+     }
+     return
+}
+{% endif %}
+
+// UpdateX Update的扩展方法，根据Cond更新一条或多条记录
+func (*{{lcamelTableName}}) UpdateX(c *gin.Context, db *gorm.DB, conds mysql.Conds, ups mysql.Ups) (err error) {
+    {% for value in columns %}{% if value.Name == "update_time" %}ups["update_time"] = time.Now().Unix(){% endif %}{% endfor %}
+    sql, binds := mysql.BuildQuery(conds)
+    if err = db.Table("{{tableName}}").Where(sql, binds...).Updates(ups).Error; err != nil {
+        mus.Logger.Error("{{tableName}} update error", zap.Error(err))
+        return
+    }
+    return
+}
+
+{% if hasPrimaryKey == true %}
+// Delete 根据主键删除一条记录。如果有delete_time则软删除，否则硬删除。
+func (*{{lcamelTableName}}) Delete(c *gin.Context, db *gorm.DB, param{{camelPrimaryKey}} {{primaryKeyType}}) (err error) {
+    var sql = "`{{primaryKey}}`=?"
+    var binds = []interface{}{param{{camelPrimaryKey}}}
+    {% if hasDeleteTime %}if err = db.Table("{{tableName}}").Where(sql, binds...).Update(mysql.Ups{"delete_time":time.Now().Unix()}).Error; err != nil {
+        mus.Logger.Error("{{tableName}} delete error", zap.Error(err))
+        return
+    }
+    {% else %}
+    if err = db.Table("{{tableName}}").Where(sql, binds...).Delete(&mysql.{{camelTableName}}{}).Error; err != nil {
+        mus.Logger.Error("{{tableName}} delete error", zap.Error(err))
+        return
+    }
+    {% endif %}
+	return
+}
+{% endif %}
+
+// DeleteX Delete的扩展方法，根据Cond删除一条或多条记录。如果有delete_time则软删除，否则硬删除。
+func (*{{lcamelTableName}}) DeleteX(c *gin.Context, db *gorm.DB, conds mysql.Conds) (err error) {
+    sql, binds := mysql.BuildQuery(conds)
+	{% if hasDeleteTime %}if err = db.Table("{{tableName}}").Where(sql, binds...).Update(mysql.Ups{"delete_time":time.Now().Unix()}).Error; err != nil {
+		mus.Logger.Error("{{tableName}} delete error", zap.Error(err))
+        return
+	}
+	{% else %}
+	if err = db.Table("{{tableName}}").Where(sql, binds...).Delete(&mysql.{{camelTableName}}{}).Error; err != nil {
+		mus.Logger.Error("{{tableName}} delete error", zap.Error(err))
+        return
+	}
+    {% endif %}
+	return
+}
+
+{% if hasPrimaryKey == true %}
+// Info 根据PRI查询单条记录
+func (*{{lcamelTableName}}) Info(c *gin.Context, param{{camelPrimaryKey}} {{primaryKeyType}}) (resp mysql.{{camelTableName}}, err error) {
+    var sql = "`{{primaryKey}}`=?"
+    var binds = []interface{}{param{{camelPrimaryKey}}}
+    {% if hasDeleteTime %}sql += " AND delete_time = 0"{% endif %}
+    if err = mus.Db.Table("{{tableName}}").Where(sql, binds...).First(&resp).Error; err != nil {
+        mus.Logger.Error("{{tableName}} info error", zap.Error(err))
+        return
+    }
+    return
+}
+{% endif %}
+
+// InfoX Info的扩展方法，根据Cond查询单条记录
+func (*{{lcamelTableName}}) InfoX(c *gin.Context, conds mysql.Conds) (resp mysql.{{camelTableName}}, err error) {
+    sql, binds := mysql.BuildQuery(conds)
+    {% if hasDeleteTime %}sql += " AND delete_time = 0"{% endif %}
+    if err = mus.Db.Table("{{tableName}}").Where(sql, binds...).First(&resp).Error; err != nil {
+        mus.Logger.Error("{{tableName}} info error", zap.Error(err))
+        return
+    }
+    return
+}
+
+// List 查询list，extra[0]为sorts
+func (*{{lcamelTableName}}) List(c *gin.Context, conds mysql.Conds, extra ...string) (resp []mysql.{{camelTableName}}, err error) {
+    sql, binds := mysql.BuildQuery(conds)
+    {% if hasDeleteTime %}sql += " AND delete_time = 0"{% endif %}
+    sorts := ""
+    if len(extra) >= 1 {
+        sorts = extra[0]
+    }
+    if err = mus.Db.Table("{{tableName}}").Where(sql, binds...).Order(sorts).Find(&resp).Error; err != nil {
+        mus.Logger.Error("{{tableName}} info error", zap.Error(err))
+        return
+    }
+    return
+}
+
+{% if primaryKeyType != ""%}
+// ListMap 查询map，map遍历的时候是无序的，所以指定sorts参数没有意义
+func (*{{lcamelTableName}}) ListMap(c *gin.Context, conds mysql.Conds) (resp map[{{primaryKeyType}}]mysql.{{camelTableName}}, err error) {
+    sql, binds := mysql.BuildQuery(conds)
+    {% if hasDeleteTime %}sql += " AND delete_time = 0"{% endif %}
+    mysqlSlice := make([]mysql.{{camelTableName}},0)
+    resp = make(map[{{primaryKeyType}}]mysql.{{camelTableName}},0)
+    if err = mus.Db.Table("{{tableName}}").Where(sql, binds...).Find(&mysqlSlice).Error; err != nil {
+        mus.Logger.Error("{{tableName}} info error", zap.Error(err))
+        return
+    }
+    for _,value := range mysqlSlice {
+        resp[value.{{camelPrimaryKey}}] = value
+    }
+   return
+}
+{% endif %}
+
+// ListPage 根据分页条件查询list
+func (*{{lcamelTableName}}) ListPage(c *gin.Context, conds mysql.Conds, reqList *trans.ReqPage) (total int, respList []mysql.{{camelTableName}}) {
+    if reqList.PageSize == 0 {
+        reqList.PageSize = 10
+    }
+    if reqList.Current == 0 {
+        reqList.Current = 1
+    }
+    sql, binds := mysql.BuildQuery(conds)
+    {% if hasDeleteTime %}sql += " AND delete_time = 0"{% endif %}
+    db := mus.Db.Table("{{tableName}}").Where(sql, binds...)
+    respList = make([]mysql.{{camelTableName}}, 0)
+    db.Count(&total)
+    db.Order(reqList.Sort).Offset((reqList.Current - 1) * reqList.PageSize).Limit(reqList.PageSize).Find(&respList)
+    return
+}

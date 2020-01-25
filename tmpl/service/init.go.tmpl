@@ -1,0 +1,11 @@
+package service
+
+var (
+    {% for value in camelTableNames %}{{value}} *{{value|lowerfirst}}
+    {% endfor %}
+)
+
+func InitGen() {
+    {% for value in camelTableNames %}{{value}} =  Init{{value}}()
+    {% endfor %}
+}
