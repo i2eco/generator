@@ -2,7 +2,6 @@ package gen
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"net"
 	"net/url"
@@ -72,9 +71,6 @@ func GetTableSchemas(dsn string, db string, table string) (resp []model.TableSch
 	} else {
 		conn, err = sql.Open("mysql", dsn)
 	}
-	fmt.Println("dsn------>", dsn)
-	fmt.Println("dsn------>", db)
-	fmt.Println("dsn------>", table)
 	if err != nil {
 		log.Panic("[GetTableSchemas] mysql open", err.Error())
 		return nil, err
@@ -100,7 +96,6 @@ FROM COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME LIKE ? ORDER BY TABLE_NAME, O
 		}
 		columns = append(columns, cs)
 	}
-	fmt.Println("columns------>", columns)
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}

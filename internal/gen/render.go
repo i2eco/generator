@@ -103,10 +103,14 @@ func loadImports() map[string]struct{} {
 	}
 	imports[arg.Module+"/pkg/mus"] = struct{}{}
 	imports[arg.Model+"/mysql"] = struct{}{}
+	imports[arg.Model+"/trans"] = struct{}{}
 	imports["go.uber.org/zap"] = struct{}{}
 	imports["github.com/jinzhu/gorm"] = struct{}{}
 	imports["strings"] = struct{}{}
 	imports["time"] = struct{}{}
+	if arg.Debug == "true" {
+		fmt.Println("imports module: ", imports)
+	}
 	return imports
 }
 
@@ -117,7 +121,6 @@ func render(ctx pongo2.Context, schemas map[string]model.Table) {
 		var globalImports = loadImports()
 		// 剔除自己所在的包，防止循环引用
 		delete(globalImports, arg.Module+"/"+filepath.Dir(path))
-		fmt.Println("schemas------>", schemas)
 		for tableName, schema := range schemas {
 			schema.Imports = globalImports
 			var hasOpenId, hasDeleteTime bool
@@ -158,7 +161,6 @@ func render(ctx pongo2.Context, schemas map[string]model.Table) {
 
 // write 写bytes到文件
 func write(filename string, buf string) (err error) {
-	fmt.Println("arg.Debug------>", arg.Debug)
 	filePath := path.Dir(filename)
 	err = createPath(filePath)
 	if err != nil {

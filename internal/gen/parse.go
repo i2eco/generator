@@ -4,7 +4,6 @@ package gen
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"strings"
 
@@ -13,7 +12,6 @@ import (
 
 func GetSchemaTpls(tableSchemas []model.TableSchema) (resp map[string]model.Table) {
 	resp = make(map[string]model.Table)
-	fmt.Println("tableSchemas------>", tableSchemas)
 	for _, value := range tableSchemas {
 		if _, ok := resp[value.TableName]; !ok {
 			resp[value.TableName] = model.Table{
