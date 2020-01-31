@@ -1,0 +1,13 @@
+package dao
+
+
+import(
+{% for value in imports %} "{{value}}"
+{% endfor %}
+)
+
+var (
+    {% for value in camelTableNames %}{{value}} *{{value|lowerfirst}}
+    {% endfor %}
+)
+

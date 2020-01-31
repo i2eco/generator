@@ -6,12 +6,8 @@ import(
 {% endfor %}
 )
 
-var (
-    {% for value in camelTableNames %}{{value}} *{{value|lowerfirst}}
-    {% endfor %}
-)
 
 func InitGen() {
-    {% for value in camelTableNames %}{{value}} =  Init{{value}}(mus.Logger,mus.Db)
+    {% for value in camelTableNames %}dao.{{value}} =  dao.Init{{value}}(mus.Logger,mus.Db)
     {% endfor %}
 }

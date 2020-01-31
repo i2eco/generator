@@ -24,6 +24,8 @@ func init() {
 	newCmd.PersistentFlags().StringVarP(&arg.Table, "table", "t", "%%", `指定表名`)
 	newCmd.PersistentFlags().StringVarP(&arg.Module, "module", "M", "", `指定项目module`)
 	newCmd.PersistentFlags().StringVar(&arg.Model, "model", "", `指定项目model`)
+	newCmd.PersistentFlags().StringVar(&arg.Dao, "dao", "", `生成文件地址dao`)
+	newCmd.PersistentFlags().StringVar(&arg.OutDao, "outdao", "", `生成文件地址dao`)
 	newCmd.PersistentFlags().StringVarP(&arg.TmplDir, "tmpl-dir", "T", "tmpl", `指定渲染模板目录`)
 	newCmd.PersistentFlags().StringVar(&arg.Debug, "debug", "false", `调试信息`)
 	// newCmd.PersistentFlags().IntVarP(&arg.TimeType, "time-type", "time", 1, `指定时间类型`)

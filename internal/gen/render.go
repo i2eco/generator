@@ -29,6 +29,7 @@ var (
 
 func init() {
 	pongo2.RegisterFilter("lowerfirst", lwfirst)
+	pongo2.RegisterFilter("upperfirst", upperfirst)
 	tpls = make(map[string]string)
 	tplDirs = make(map[string]bool)
 }
@@ -41,6 +42,14 @@ func lwfirst(in *pongo2.Value, param *pongo2.Value) (*pongo2.Value, *pongo2.Erro
 	t := in.String()
 	r, size := utf8.DecodeRuneInString(t)
 	return pongo2.AsValue(strings.ToLower(string(r)) + t[size:]), nil
+}
+
+func upperfirst(in *pongo2.Value, param *pongo2.Value) (*pongo2.Value, *pongo2.Error) {
+	if in.Len() <= 0 {
+		return pongo2.AsValue(""), nil
+	}
+	t := in.String()
+	return pongo2.AsValue(strings.Replace(t, string(t[0]), strings.ToUpper(string(t[0])), 1)), nil
 }
 
 // loadTmpl 递归地将tmpl文件加载到内存中
@@ -99,10 +108,15 @@ func getPath(path string, tableName string) string {
 func loadImports() map[string]struct{} {
 	imports := make(map[string]struct{})
 	for relPath := range tplDirs {
+		// 过滤掉dao
+		if relPath == "dao" {
+			continue
+		}
 		imports[arg.Module+"/"+relPath] = struct{}{}
 	}
 	imports[arg.Module+"/pkg/mus"] = struct{}{}
 	imports[arg.Model+"/mysql"] = struct{}{}
+	imports[arg.Dao] = struct{}{}
 	imports[arg.Model+"/trans"] = struct{}{}
 	imports["go.uber.org/zap"] = struct{}{}
 	imports["github.com/jinzhu/gorm"] = struct{}{}
@@ -150,11 +164,22 @@ func render(ctx pongo2.Context, schemas map[string]model.Table) {
 			ctx["camelPrimaryKey"] = schema.CamelPrimaryKey
 			ctx["primaryKey"] = schema.PrimaryKey
 			ctx["primaryKeyType"] = schema.PrimaryKeyType
-			buf, err := render.TemplateFromString(content).Execute(ctx)
-			if err = write(filepath.Join(arg.Out, getPath(path, tableName)), buf); err != nil {
-				log.Panicln("[render] write err: ", err.Error(), path, tableName, buf)
-				return
+
+			// 如果包含到dao，就换个目录输出
+			if strings.Contains(path, "dao/") {
+				buf, err := render.TemplateFromString(content).Execute(ctx)
+				if err = write(filepath.Join(arg.OutDao, getPath(strings.Replace(path, "dao/", "", 1), tableName)), buf); err != nil {
+					log.Panicln("[render] write err: ", err.Error(), path, tableName, buf)
+					return
+				}
+			} else {
+				buf, err := render.TemplateFromString(content).Execute(ctx)
+				if err = write(filepath.Join(arg.Out, getPath(path, tableName)), buf); err != nil {
+					log.Panicln("[render] write err: ", err.Error(), path, tableName, buf)
+					return
+				}
 			}
+
 		}
 	}
 }
