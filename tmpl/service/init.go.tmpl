@@ -1,11 +1,17 @@
 package service
 
+
+import(
+{% for value in imports %} "{{value}}"
+{% endfor %}
+)
+
 var (
     {% for value in camelTableNames %}{{value}} *{{value|lowerfirst}}
     {% endfor %}
 )
 
 func InitGen() {
-    {% for value in camelTableNames %}{{value}} =  Init{{value}}()
+    {% for value in camelTableNames %}{{value}} =  Init{{value}}(mus.Logger,mus.Db)
     {% endfor %}
 }
