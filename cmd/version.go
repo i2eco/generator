@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/goecology/generator/pkg/version"
+	"github.com/i2eco/generator/pkg/version"
 	"github.com/spf13/cobra"
 )
 

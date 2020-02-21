@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/goecology/generator/cmd"
+	"github.com/i2eco/generator/cmd"
 )
 
 func main() {

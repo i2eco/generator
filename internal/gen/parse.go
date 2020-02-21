@@ -7,7 +7,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/goecology/generator/internal/model"
+	"github.com/i2eco/generator/internal/model"
 )
 
 func GetSchemaTpls(tableSchemas []model.TableSchema) (resp map[string]model.Table) {

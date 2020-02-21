@@ -1,4 +1,4 @@
-module github.com/goecology/generator
+module github.com/i2eco/generator
 
 require (
 	github.com/flosch/pongo2 v0.0.0-20181225140029-79872a7b2769

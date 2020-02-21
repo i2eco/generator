@@ -11,8 +11,8 @@ import (
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
 
-	"github.com/goecology/generator/internal/model"
-	"github.com/goecology/generator/pkg/arg"
+	"github.com/i2eco/generator/internal/model"
+	"github.com/i2eco/generator/pkg/arg"
 )
 
 type ViaSSHDialer struct {

@@ -12,8 +12,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/goecology/generator/internal/model"
-	"github.com/goecology/generator/pkg/arg"
+	"github.com/i2eco/generator/internal/model"
+	"github.com/i2eco/generator/pkg/arg"
 
 	"github.com/flosch/pongo2"
 	"github.com/pkg/errors"

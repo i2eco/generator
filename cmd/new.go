@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/goecology/generator/internal/gen"
-	"github.com/goecology/generator/pkg/arg"
+	"github.com/i2eco/generator/internal/gen"
+	"github.com/i2eco/generator/pkg/arg"
 	"github.com/spf13/cobra"
 	"log"
 )
@@ -18,7 +18,7 @@ var newCmd = &cobra.Command{
 func init() {
 	newCmd.PersistentFlags().StringVar(&arg.Database, "db", "", `指定数据库名`)
 	newCmd.PersistentFlags().StringVar(&arg.MySQL, "mysql",
-		"goecology:goecology@mysql+tcp(127.0.0.1:3306)/information_schema", `指定存储(MySQL等)地址`)
+		"i2eco:i2eco@mysql+tcp(127.0.0.1:3306)/information_schema", `指定存储(MySQL等)地址`)
 	newCmd.PersistentFlags().StringVarP(&arg.Out, "out", "o", "./dist", `指定输出目录`)
 	newCmd.PersistentFlags().StringVarP(&arg.SshTunnel, "ssh", "s", "", `开启ssh隧道`)
 	newCmd.PersistentFlags().StringVarP(&arg.Table, "table", "t", "%%", `指定表名`)
